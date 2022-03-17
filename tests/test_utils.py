@@ -17,7 +17,7 @@ def test_settings_changed():
     settings = RedisSettings(port=123)
     assert settings.port == 123
     assert (
-        "RedisSettings(host='localhost', port=123, database=0, username=None, password=None, ssl=None, conn_timeout=1, "
+        "RedisSettings(host='localhost', port=123, database=0, username=None, password=None, ssl=None, ssl_ca_certs=None, conn_timeout=1, "
         "conn_retries=5, conn_retry_delay=1, sentinel=False, sentinel_master='mymaster')"
     ) == str(settings)
 

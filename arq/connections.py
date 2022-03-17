@@ -6,7 +6,7 @@ from dataclasses import dataclass
 from datetime import datetime, timedelta
 from operator import attrgetter
 from typing import Any, Callable, Generator, List, Optional, Tuple, Union
-from urllib.parse import urlparse
+from urllib.parse import parse_qs, urlparse
 from uuid import uuid4
 
 from pydantic.validators import make_arbitrary_type_validator
@@ -45,6 +45,7 @@ class RedisSettings:
     username: Optional[str] = None
     password: Optional[str] = None
     ssl: Union[bool, None, SSLContext] = None
+    ssl_ca_certs: Optional[str] = None
     conn_timeout: int = 1
     conn_retries: int = 5
     conn_retry_delay: int = 1
@@ -60,6 +61,7 @@ class RedisSettings:
             host=conf.hostname or 'localhost',
             port=conf.port or 6379,
             ssl=conf.scheme == 'rediss',
+            ssl_ca_certs=parse_qs(conf.query).get('ssl_ca_certs') if conf.query else None,
             username=conf.username,
             password=conf.password,
             database=int((conf.path or '0').strip('/')),
@@ -214,7 +216,7 @@ async def create_pool(
     if settings.sentinel:
 
         def pool_factory(*args: Any, **kwargs: Any) -> ArqRedis:
-            client = Sentinel(*args, sentinels=settings.host, ssl=settings.ssl, **kwargs)
+            client = Sentinel(*args, sentinels=settings.host, ssl=settings.ssl, ssl_ca_certs=settings.ssl_ca_certs, **kwargs)
             return client.master_for(settings.sentinel_master, redis_class=ArqRedis)
 
     else:
@@ -224,6 +226,7 @@ async def create_pool(
             port=settings.port,
             socket_connect_timeout=settings.conn_timeout,
             ssl=settings.ssl,
+            ssl_ca_certs=settings.ssl_ca_certs
         )
 
     try:
