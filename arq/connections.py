@@ -46,6 +46,7 @@ class RedisSettings:
     password: Optional[str] = None
     ssl: Union[bool, None, SSLContext] = None
     ssl_ca_certs: Optional[str] = None
+    ssl_cert_reqs: Optional[str] = None
     conn_timeout: int = 1
     conn_retries: int = 5
     conn_retry_delay: int = 1
@@ -216,7 +217,14 @@ async def create_pool(
     if settings.sentinel:
 
         def pool_factory(*args: Any, **kwargs: Any) -> ArqRedis:
-            client = Sentinel(*args, sentinels=settings.host, ssl=settings.ssl, ssl_ca_certs=settings.ssl_ca_certs, **kwargs)
+            client = Sentinel(
+                *args,
+                sentinels=settings.host,
+                ssl=settings.ssl,
+                ssl_ca_certs=settings.ssl_ca_certs,
+                ssl_cert_reqs=settings.ssl_cert_reqs,
+                **kwargs,
+            )
             return client.master_for(settings.sentinel_master, redis_class=ArqRedis)
 
     else:
@@ -226,7 +234,8 @@ async def create_pool(
             port=settings.port,
             socket_connect_timeout=settings.conn_timeout,
             ssl=settings.ssl,
-            ssl_ca_certs=settings.ssl_ca_certs
+            ssl_ca_certs=settings.ssl_ca_certs,
+            ssl_cert_reqs=settings.ssl_cert_reqs,
         )
 
     try:
