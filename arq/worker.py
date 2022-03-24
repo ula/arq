@@ -649,7 +649,7 @@ class Worker:
             # result_data would only be None if serializing the result fails
             keep_result = self.keep_result_forever or self.keep_result_s > 0
             if result_data is not None and keep_result:  # pragma: no branch
-                expire = 0 if self.keep_result_forever else self.keep_result_s
+                expire = None if self.keep_result_forever else self.keep_result_s
                 tr.set(result_key_prefix + job_id, result_data, px=to_ms(expire))
             await tr.execute()
 
